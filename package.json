@@ -1,11 +1,11 @@
 {
-  "name": "ssb-private",
-  "description": "scuttlebot plugin for indexed private messages",
-  "version": "0.2.3",
-  "homepage": "https://github.com/ssbc/ssb-private",
+  "name": "ssb-share",
+  "description": "scuttlebot plugin for indexing private share messages",
+  "version": "0.0.1",
+  "homepage": "https://github.com/gmarcos87/ssb-share",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ssbc/ssb-private.git"
+    "url": "git://github.com/gmarcos87/ssb-share.git"
   },
   "dependencies": {
     "base64-url": "^2.2.0",
