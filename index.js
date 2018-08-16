@@ -12,7 +12,7 @@ var indexes = [
 
 var indexVersion = 2
 
-exports.name = 'private'
+exports.name = 'share'
 exports.version = require('./package.json').version
 exports.manifest = {
   publish: 'async',
@@ -22,9 +22,9 @@ exports.manifest = {
 
 exports.init = function (ssb, config) {
   var index = ssb._flumeUse(
-    `private-${toUrlFriendly(ssb.id.slice(1, 10))}`,
+    `share-${toUrlFriendly(ssb.id.slice(1, 10))}`,
     FlumeQueryLinks(indexes, (msg, emit) => {
-      if (msg.value.private === true)
+      if (msg.value.share === true)
         emit(msg)
     }, indexVersion)
   )
@@ -39,6 +39,7 @@ exports.init = function (ssb, config) {
       if (typeof msgOrData === 'string') {
         try {
           var data = ssbKeys.unbox(msgOrData, ssb.keys.private)
+          data = JSON.parse(data)
         } catch (e) {
           throw explain(e, 'failed to decrypt')
         }
@@ -53,9 +54,13 @@ exports.init = function (ssb, config) {
       }
     },
 
-    publish: function (content, recps, cb) {
+    publish: function (content, links, recps, cb) {
       try {
-        var ciphertext = ssbKeys.box(content, recps)
+        var plainJson = JSON.stringify({
+          content: content,
+          links: links
+        })
+        var ciphertext = ssbKeys.box(plainJson, recps)
       } catch (e) {
         return cb(explain(e, 'failed to encrypt'))
       }
@@ -64,21 +69,22 @@ exports.init = function (ssb, config) {
   }
 
   function unboxValue (value) {
-    var plaintext = null
+    var jsonData = null
     try {
-      plaintext = ssbKeys.unbox(value.content, ssb.keys.private)
+      jsonData = ssbKeys.unbox(value.content, ssb.keys.private)
     } catch (ex) {
       explain(ex, 'failed to decrypt')
     }
-    if (!plaintext) return null
+    if (!jsonData) return null
     return {
       previous: value.previous,
       author: value.author,
       sequence: value.sequence,
       timestamp: value.timestamp,
       hash: value.hash,
-      content: plaintext,
-      private: true
+      content: jsonData.content,
+      links: jsonData.links,
+      share: true
     }
   }
 }
